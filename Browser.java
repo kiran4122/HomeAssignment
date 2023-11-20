@@ -1,15 +1,10 @@
-package week1.day1;
+package home.assignment;
 
 public class Browser {
 	
 	public static void main(String[] args) {
 		
-		Chrome call = new Chrome ();
-		call.getName();
-		call.printName();
-		
+		System.out.println("This is my browser");
 	}
-	
-	
 
 }
