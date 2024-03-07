@@ -1,0 +1,40 @@
+if (!nt6Status.isEmpty()) {
+    String actualNT6Status = jsonPathEvaluator.get("nt6Status");
+    String actualNT6ReportType = jsonPathEvaluator.get("reportType");
+    String actualNT6StatusReason = jsonPathEvaluator.get("nt6StatusReason");
+
+    // Check if the report client is or and skip the status check
+    if (!actualNT6ReportType.equalsIgnoreCase("") && !actualNT6ReportType.equalsIgnoreCase("")) {
+        // Perform status check only for other report types
+        if (expectedNT6Status.contains(actualNT6Status.toLowerCase())) {
+            // Status matched
+            Utility.logPass("Trade status matched as " + string + " for trade id: " + value);
+        } else {
+            // Status not matched, keep checking until it matches or the wait count is reached
+            int counter = 1;
+            int endCounter = Integer.parseInt(TextProp.getProperty("waitCountForStatusChange"));
+            while (!expectedNT6Status.contains(actualNT6Status.toLowerCase())) {
+                base.response = RestAPI.getRestResponse(completeUrl, "GET");
+                actualNT6Status = base.response.jsonPath().get("nt6Status");
+                
+                // Check if trade is rejected
+                if (!expectedNT6Status.toLowerCase().contains("rejected")) {
+                    if (actualNT6Status.toLowerCase().contains("rejected")) {
+                        rejectedFlag = true;
+                        overallRejectedFlag = true;
+                        break;
+                    }
+                }
+
+                // Increment counter and break loop if necessary
+                if (counter >= endCounter) {
+                    break;
+                }
+                counter++;
+            }
+        }
+    } else {
+        // Skip status check for FSIMCF3 and FSIMCF4
+        Utility.logPass("Skipped status check for report type FSIMCF3 or FSIMCF4");
+    }
+}
