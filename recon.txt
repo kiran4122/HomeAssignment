@@ -1,0 +1,107 @@
+from PIL import Image
+import streamlit as st
+from langchain.chains.question_answering import load_qa_chain
+from langchain_openai import AzureChatOpenAI
+import pandas as pd
+import openai
+
+# Set OpenAI API configuration
+openai.api_type = "azure"
+openai.api_base = "https://e-incubator.asiapac.fabric.ey.com/eyg/as/api"
+openai.api_version = "2023-07-01-preview"
+openai.api_key = 'your_api_key_here'
+
+# Load Image using PIL
+im = Image.open('./EY_logo.jpg')
+
+# Setting Streamlit page configuration
+st.title("AI-Based Excel File Comparator")
+
+# Hiding the default Streamlit format
+hide_default_format = """
+<style>
+body {
+    background-color: #000000; /* Set to black (#000000) */
+}
+footer {
+    visibility: hidden;
+}
+</style>
+"""
+st.markdown(hide_default_format, unsafe_allow_html=True)
+
+# Customizing Streamlit sidebar background color to black
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #000000; /* Set to black (#000000) */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    logo_path = "./EY_logo.jpg"
+    st.sidebar.image(logo_path)
+
+def read_excel_to_text(file):
+    """
+    Reads the Excel file into a DataFrame and converts it to a text string.
+    """
+    df = pd.read_excel(file)
+    return df.to_string(index=False)  # Convert DataFrame to string without index
+
+def compare_excel_files_with_ai(text1, text2):
+    """
+    Use AI to compare the contents of two Excel files.
+    """
+    # Create a prompt to compare the contents of the two Excel files
+    prompt = f"""
+    Compare the following two sets of Excel data and identify any differences:
+    
+    Excel Data 1:
+    {text1}
+    
+    Excel Data 2:
+    {text2}
+    
+    Highlight the differences and provide a summary of where the discrepancies occur.
+    """
+
+    llm = AzureChatOpenAI(
+        deployment_name='gpt-4-32k',
+        model_name="gpt-4-32k",
+        openai_api_key="your_api_key_here",
+        azure_endpoint="https://eyq-incubator.asiapac.fabric.ey.com/eyg/as/api",
+        api_version="2023-07-01-preview",
+        openai_api_type="azure",
+        temperature=0.0
+    )
+
+    # Use the AI model to analyze the prompt
+    chain = load_qa_chain(llm, chain_type="stuff")
+    response = chain.run(input_documents=[{"page_content": prompt}], question=prompt)
+
+    return response
+
+def main():
+    st.title("AI-Based Excel File Comparator")
+
+    # File upload for two Excel files
+    uploaded_file1 = st.file_uploader("Upload the first Excel file", type=["xlsx", "xls"])
+    uploaded_file2 = st.file_uploader("Upload the second Excel file", type=["xlsx", "xls"])
+
+    if uploaded_file1 is not None and uploaded_file2 is not None:
+        # Button to compare Excel files using AI
+        if st.button("Compare Excel Files with AI"):
+            # Read the content of the uploaded files
+            text1 = read_excel_to_text(uploaded_file1)
+            text2 = read_excel_to_text(uploaded_file2)
+            
+            # Get the comparison report from the AI model
+            comparison_report = compare_excel_files_with_ai(text1, text2)
+            
+            st.subheader("AI-Based Comparison Report:")
+            st.text(comparison_report)
+
+if __name__ == "__main__":
+    main()
