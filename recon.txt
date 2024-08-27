@@ -54,18 +54,17 @@ def compare_excel_files_with_ai(text1, text2):
     """
     Use AI to compare the contents of two Excel files.
     """
-    # Create a prompt to compare the contents of the two Excel files
-    prompt = f"""
-    Compare the following two sets of Excel data and identify any differences:
-    
-    Excel Data 1:
-    {text1}
-    
-    Excel Data 2:
-    {text2}
-    
+    # Define the specific question for the AI to answer
+    question = """
+    Compare the following two sets of Excel data and identify any differences.
     Highlight the differences and provide a summary of where the discrepancies occur.
     """
+
+    # Prepare the input documents with the content to be compared
+    input_documents = [
+        {"page_content": f"Excel Data 1:\n{text1}"},
+        {"page_content": f"Excel Data 2:\n{text2}"}
+    ]
 
     llm = AzureChatOpenAI(
         deployment_name='gpt-4-32k',
@@ -79,8 +78,7 @@ def compare_excel_files_with_ai(text1, text2):
 
     # Use the AI model to analyze the prompt
     chain = load_qa_chain(llm, chain_type="stuff")
-    # The prompt is already part of the document content, no need to pass it as a separate question
-    response = chain.run(input_documents=[{"page_content": prompt}])
+    response = chain.run(input_documents=input_documents, question=question)
 
     return response
 
