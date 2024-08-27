@@ -79,7 +79,8 @@ def compare_excel_files_with_ai(text1, text2):
 
     # Use the AI model to analyze the prompt
     chain = load_qa_chain(llm, chain_type="stuff")
-    response = chain.run(input_documents=[{"page_content": prompt}], question=prompt)
+    # The prompt is already part of the document content, no need to pass it as a separate question
+    response = chain.run(input_documents=[{"page_content": prompt}])
 
     return response
 
