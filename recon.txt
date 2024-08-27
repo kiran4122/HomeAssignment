@@ -62,8 +62,7 @@ def compare_excel_files_with_ai(text1, text2):
 
     # Prepare the input documents with the content to be compared
     input_documents = [
-        {"page_content": f"Excel Data 1:\n{text1}"},
-        {"page_content": f"Excel Data 2:\n{text2}"}
+        {"content": f"Excel Data 1:\n{text1}\nExcel Data 2:\n{text2}"}
     ]
 
     llm = AzureChatOpenAI(
